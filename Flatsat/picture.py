@@ -10,10 +10,9 @@ The provided functions are only for reference, you do not need to use them.
 You will need to complete the take_photo() function and configure the VARIABLES section
 """
 
-#AUTHOR: 
-#DATE:
+# AUTHOR: Tahmid Islam
+# DATE: 1/7/26
 
-#import libraries
 import time
 import board
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
@@ -21,64 +20,83 @@ from adafruit_lis3mdl import LIS3MDL
 from git import Repo
 from picamera2 import Picamera2
 
-#VARIABLES
-THRESHOLD = 0      #Any desired value from the accelerometer
-REPO_PATH = ""     #Your github repo path: ex. /home/pi/FlatSatChallenge
-FOLDER_PATH = ""   #Your image folder path in your GitHub repo: ex. /Images
+# vars
+THRESHOLD = 15.0    # acceleration threshold, not sure if this is right
+REPO_PATH = "/home/pi/CubeSat" # depends on what david stored locally
+FOLDER_PATH = "/Images" 
+NAME = "TahmidI" # 
 
-#imu and camera initialization
+# hardware
 i2c = board.I2C()
-accel_gyro = LSM6DS(i2c)
-mag = LIS3MDL(i2c)
-picam2 = Picamera2()
+accel_gyro = LSM6DS(i2c)  # 6-DoF IMU (accelerometer + gyro)
+mag = LIS3MDL(i2c)         # 3-axis magnetometer
+picam2 = Picamera2()       # pi Camera
+picam2.start_preview()
+time.sleep(2)
 
+# functions
 
 def git_push():
     """
-    This function is complete. Stages, commits, and pushes new images to your GitHub repo.
+    Stages, commits, and pushes new images to your GitHub repo.
     """
     try:
         repo = Repo(REPO_PATH)
         origin = repo.remote('origin')
-        print('added remote')
-        origin.pull()
-        print('pulled changes')
+        origin.pull()  # pull
         repo.git.add(REPO_PATH + FOLDER_PATH)
         repo.index.commit('New Photo')
-        print('made the commit')
         origin.push()
-        print('pushed changes')
-    except:
-        print('Couldn\'t upload to git')
+        print('Pushed new photo to GitHub.')
+    except Exception as e:
+        print("Couldn't upload to git:", e)
 
 
 def img_gen(name):
     """
-    This function is complete. Generates a new image name.
+    Generates a descriptive image filename based on the current time.
 
     Parameters:
-        name (str): your name ex. MasonM
+        name (str): Your name, ex. MasonM
     """
     t = time.strftime("_%H%M%S")
-    imgname = (f'{REPO_PATH}/{FOLDER_PATH}/{name}{t}.jpg')
+    imgname = f'{REPO_PATH}{FOLDER_PATH}/{name}{t}.jpg'
     return imgname
 
 
 def take_photo():
     """
-    This function is NOT complete. Takes a photo when the FlatSat is shaken.
-    Replace psuedocode with your own code.
+    Continuously monitors accelerometer data. When a shake above the threshold
+    is detected, takes a photo and saves it to the GitHub repo folder.
     """
+    print("Checking for shakes")
     while True:
-        accelx, accely, accelz = accel_gyro.acceleration
+        # getting the value
+        accelx, accely, accelz = accel_gyro.acceleration # this should be in m/s^2?
 
-        #CHECKS IF READINGS ARE ABOVE THRESHOLD
-            #PAUSE
-            #name = ""     #First Name, Last Initial  ex. MasonM
-            #TAKE PHOTO
-            #PUSH PHOTO TO GITHUB
-        
-        #PAUSE
+        # is this right?
+        total_accel = (accelx**2 + accely**2 + accelz**2)**0.5
+
+        # conditional
+        if total_accel > THRESHOLD:
+            print(f"Shake detected! Acceleration: {total_accel:.2f} m/s^2")
+            
+            # creates file
+            filename = img_gen(NAME)
+            print(f"Taking photo: {filename}")
+            
+            # takes image
+            picam2.capture_file(filename)
+            print("Photo taken.")
+
+            # pushes
+            git_push()
+
+            # delay for hardware
+            time.sleep(5)
+
+        # delay
+        time.sleep(0.1)
 
 
 def main():

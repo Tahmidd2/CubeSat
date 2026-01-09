@@ -20,7 +20,7 @@ import os
 
 THRESHOLD = 3.0  # Shake threshold (m/s^2 above gravity)
 COOLDOWN = 5     # Seconds between photos
-REPO_PATH = "/home/pi/CubeSat"
+REPO_PATH = "home/palace-stuy/GITHUB/Cubesat/Flatsat"
 FOLDER_PATH = "/Images"
 NAME = "TahmidI"
 

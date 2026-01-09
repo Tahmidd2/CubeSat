@@ -22,9 +22,9 @@ from picamera2 import Picamera2
 
 # vars
 THRESHOLD = 15.0    # acceleration threshold, not sure if this is right
-REPO_PATH = "/home/pi/CubeSat" # depends on what david stored locally
+REPO_PATH = "home/palace-stuy/GITHUB/Cubesat/Flatsat" # depends on what david stored locally
 FOLDER_PATH = "/Images" 
-NAME = "TahmidI" # 
+NAME = "DavidK" # 
 
 # hardware
 i2c = board.I2C()
